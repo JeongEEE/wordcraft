@@ -1,3 +1,23 @@
+# Word personal fork rules
+
+These rules implement the repository owner's fork workflow and take precedence over the
+upstream contribution workflow below for work in this fork.
+
+- `main` mirrors `upstream/main`; never commit personal changes or merge `my-custom` into it.
+- Develop, commit and push personal changes on `my-custom`. Stage only the task's explicit paths.
+- Upstream issue claims, upstream PR requirements and shared-CI-only policies apply when
+  contributing upstream. Do not post upstream issues/comments for personal fork work.
+- Fork releases are built locally on each OS and uploaded to this fork's GitHub releases.
+  Never use Actions for fork deployment and keep upstream workflows intact. Publish a release
+  only when the user asked for it; both OS builds use the same source SHA and version.
+- Keep app name `Word`, maintainer `JeongEEE`, bundle id `io.github.jeongeee.word`, updater
+  app id `word` and updater repository `JeongEEE/wordcraft` independent from upstream. Cargo
+  package/crate names, command ids and `WORDCRAFT_*` environment variables remain unchanged.
+- Follow `docs/custom-release.md` for identifiers, versioning and packaging. Maintain the Word
+  section in `MyProjectsWiki/wiki/` alongside architectural or operational changes, then run its
+  sync script.
+- Commit messages are Korean Conventional Commits, without generated/coauthor attribution.
+
 <!-- craft-house-rules:start core source=dde09ea31e2e457f5b4653a6e76f7cdf55944bdf sha256=540e6cea75d12d0710c3dca89658328e81e508ecef102446ca5bb95b7c0b92bb -->
 ## House rules
 
@@ -106,7 +126,7 @@ Typing, Enter, Backspace, Tab, lists, AutoCorrect and AutoFormat follow Word's o
 
 ## Running and looking at the app
 - `cargo run --release -p wordcraft -- --sample --control 7981` (sample document + control channel).
-- Drive it with JSON lines on `127.0.0.1:7981`, each with the window's key from `~/.config/wordcraft/control-key.local-7981` (macOS: `~/Library/Application Support/WordCraft/`), e.g. `{"id":1,"key":"…","method":"engine.execute","params":{"command":"text.insert","params":{"text":"Hello"}}}` then `{"id":2,"key":"…","method":"ui.screenshot","params":{"path":"/tmp/shot.png"}}`. Methods: `crates/ui-egui/src/control.rs`; docs: `docs/control-protocol.md` (Keys).
+- Drive it with JSON lines on `127.0.0.1:7981`, each with the window's key from `~/.config/word/control-key.local-7981` (macOS: `~/Library/Application Support/Word/`), e.g. `{"id":1,"key":"…","method":"engine.execute","params":{"command":"text.insert","params":{"text":"Hello"}}}` then `{"id":2,"key":"…","method":"ui.screenshot","params":{"path":"/tmp/shot.png"}}`. Methods: `crates/ui-egui/src/control.rs`; docs: `docs/control-protocol.md` (Keys).
 - **Headless window screenshots** (no focus stealing, works with a locked screen): `cargo run --release -p wordcraft-ui-egui --example ui_shot -- script.jsonl` (see the example's header).
 - **For UI work, look at the result** (screenshot, read the PNG) and compare with Word side by side.
 - CLI: `wordcraft-cli convert in.docx out.pdf`, `wordcraft-cli run --template sample --cmd 'select.text={"text":"Studio"}' --cmd format.bold --save out.docx`, `wordcraft-cli commands`, `wordcraft-cli parity`.

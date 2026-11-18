@@ -4,7 +4,7 @@
 //! defaults (`packaging/windows/wordcraft.wxs`, the `.desktop` file's `MimeType=`, `Info.plist`).
 //! This is the button that makes it the default when the user asks:
 //! - **Windows** doesn't let apps set defaults: it opens Settings › Default apps on WordCraft's
-//!   page (`ms-settings:defaultapps?registeredAppMachine=WordCraft`; Windows 10 ignores the query
+//!   page (`ms-settings:defaultapps?registeredAppMachine=JeongEEE.Word`; Windows 10 ignores the query
 //!   and shows the Default apps list), where the user picks WordCraft per type.
 //! - **Linux and BSD**: `xdg-mime default ai.storyteller.wordcraft.desktop <types>` for
 //!   [`WORD_MIME_TYPES`], which writes the user's `mimeapps.list`. Only when the desktop entry is
@@ -83,9 +83,9 @@ fn application_dirs(data_home: Option<&str>, data_dirs: Option<&str>, home: Opti
 mod windows {
     use wordcraft_ui_egui::DefaultApp;
 
-    /// Settings › Default apps, on the page of the app registered as `WordCraft` under
+    /// Settings › Default apps, on the page of the app registered as `JeongEEE.Word` under
     /// `HKLM\Software\RegisteredApplications` (the MSI writes it).
-    const SETTINGS_URI: &str = "ms-settings:defaultapps?registeredAppMachine=WordCraft";
+    const SETTINGS_URI: &str = "ms-settings:defaultapps?registeredAppMachine=JeongEEE.Word";
 
     pub(super) fn open_default_apps() -> Result<DefaultApp, String> {
         open::that_detached(SETTINGS_URI).map_err(|e| format!("couldn't open Settings: {e}"))?;
