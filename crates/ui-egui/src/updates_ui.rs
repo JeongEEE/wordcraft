@@ -201,10 +201,21 @@ fn begin(rt: &mut Runtime, ctx: &egui::Context, manual: bool) {
     });
     match spawned {
         Ok(_) => rt.pending = Some(rx),
-        Err(e) => {
-            rt.phase = Phase::Failed(e.to_string());
-            rt.visible = true;
-        }
+        Err(e) => fail(rt, e.to_string()),
+    }
+}
+
+/// A check failed: always logged, but only a check asked for by hand says so in a window.
+/// The ones Word starts itself stay quiet (offline, rate limits and missing assets would
+/// otherwise greet every launch).
+#[cfg(not(target_arch = "wasm32"))]
+fn fail(rt: &mut Runtime, reason: String) {
+    log::warn!("Word auto-update: {reason}");
+    if rt.requested {
+        rt.phase = Phase::Failed(reason);
+        rt.visible = true;
+    } else {
+        rt.phase = Phase::Idle;
     }
 }
 
@@ -231,11 +242,7 @@ fn receive(rt: &mut Runtime, message: Message) {
                 }
                 Ok(None) if matches!(rt.phase, Phase::Manual { .. }) => {}
                 Ok(None) => rt.phase = if rt.requested { Phase::Current } else { Phase::Idle },
-                Err(reason) => {
-                    log::warn!("Word auto-update: {reason}");
-                    rt.phase = Phase::Failed(reason);
-                    rt.visible = true;
-                }
+                Err(reason) => fail(rt, reason),
             }
         }
     }

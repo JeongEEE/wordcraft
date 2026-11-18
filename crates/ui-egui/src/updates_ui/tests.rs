@@ -3,7 +3,7 @@
 //! the self-update refused, and the worker's messages are fed by hand.
 #![cfg(not(target_arch = "wasm32"))]
 
-use super::{Message, Phase, Runtime, begin, begin_restart, outcome_notice, receive, tick};
+use super::{Message, Phase, Runtime, begin, begin_restart, fail, outcome_notice, receive, tick};
 use crate::{Services, WordApp};
 use craft_update::http::Transfer;
 use egui_kittest::kittest::Queryable;
@@ -260,8 +260,27 @@ fn the_card_goes_when_the_check_ends_or_its_worker_goes_away() {
     a.updates_rt.phase = Phase::Checking;
     drop(tx);
     tick(&mut a, &egui::Context::default());
+    assert!(matches!(a.updates_rt.phase, Phase::Idle) && a.updates_rt.pending.is_none());
+    assert!(!a.updates_rt.visible, "a check nobody asked for fails quietly");
+
+    let (tx, rx) = channel::<Message>();
+    a.updates_rt.pending = Some(rx);
+    a.updates_rt.phase = Phase::Checking;
+    a.updates_rt.requested = true;
+    drop(tx);
+    tick(&mut a, &egui::Context::default());
     assert!(matches!(a.updates_rt.phase, Phase::Failed(_)) && a.updates_rt.pending.is_none());
-    assert!(a.updates_rt.visible, "the failure says why, in a window that closes");
+    assert!(a.updates_rt.visible, "a check asked for by hand says why, in a window that closes");
+}
+
+#[test]
+fn a_failed_start_of_the_worker_is_quiet_unless_asked_for() {
+    let mut rt = Runtime::default();
+    fail(&mut rt, "no thread".into());
+    assert!(matches!(rt.phase, Phase::Idle) && !rt.visible);
+    rt.requested = true;
+    fail(&mut rt, "no thread".into());
+    assert!(matches!(rt.phase, Phase::Failed(_)) && rt.visible);
 }
 
 #[test]
