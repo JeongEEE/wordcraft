@@ -1,0 +1,24 @@
+[package]
+name = "wordcraft-update"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Authenticated updates for the personal Word fork"
+
+[lints]
+workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+craft-update = { git = "https://github.com/storytold/craft-libs", rev = "93dac78c93a7f1fd66e2022edeb089233b1dc45a", version = "=0.1.0" }
+serde.workspace = true
+serde_json.workspace = true
+ring = "=0.17.14"
+zip = { version = "9", default-features = false, features = ["deflate-flate2"] }
+tempfile = "3"
+
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "=0.31.3", default-features = false, features = ["signal"] }
+
+[target.'cfg(windows)'.dependencies]
+winreg = "=0.55.0"

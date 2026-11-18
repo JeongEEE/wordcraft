@@ -7633,6 +7633,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "wordcraft-update"
+version = "0.18.1"
+dependencies = [
+ "craft-update",
+ "nix",
+ "ring",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "winreg",
+ "zip",
+]
+
+[[package]]
 name = "wordcraft-web"
 version = "0.18.1"
 dependencies = [
