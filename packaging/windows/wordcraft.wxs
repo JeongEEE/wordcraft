@@ -3,12 +3,12 @@
   <?ifndef HasCraftFontLicences ?>
   <?define HasCraftFontLicences=0 ?>
   <?endif?>
-  <Package Name="Word" Manufacturer="JeongEEE" Version="$(var.Version)" UpgradeCode="6BE9BB68-D1FF-4740-95DA-EB6D2B37870C" Scope="perUserOrMachine" Compressed="yes" Language="1033">
-    <SummaryInformation Description="Word word processor" Manufacturer="JeongEEE" />
+  <Package Name="Word" Manufacturer="JeongEEE" Version="$(var.Version)" UpgradeCode="6BE9BB68-D1FF-4740-95DA-EB6D2B37870C" Scope="perUserOrMachine" Compressed="yes" Language="1042" Codepage="949">
+    <SummaryInformation Codepage="949" Description="Word 문서 편집기" Manufacturer="JeongEEE" />
     <?include $(sys.SOURCEFILEDIR)install-policy.wxi?>
     <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
          (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
-    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of Word is already installed." />
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="더 최신 버전의 Word가 이미 설치되어 있습니다." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Icon Id="WordcraftIcon.ico" SourceFile="$(var.IconPath)" />
@@ -23,7 +23,7 @@
          LICENSE-APACHE. The finish page offers to launch Word (ticked by default) through
          WixShellExec (WixToolset.Util.wixext); silent installs (/qn) never show it. -->
     <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Word" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Word 실행" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
     <Property Id="WixShellExecTarget" Value="[#WordcraftExe]" />
     <CustomAction Id="LaunchWordcraft" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixShellExec" Impersonate="yes" Return="ignore" />

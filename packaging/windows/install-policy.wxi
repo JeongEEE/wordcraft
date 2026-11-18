@@ -39,28 +39,28 @@
   <SetProperty Id="INSTALLFOLDER" Action="CraftDefaultUserFolder" Value="[LocalAppDataFolder]Programs\JeongEEE\Word\" After="CraftDefaultMachineFolder" Sequence="ui" Condition="NOT INSTALLFOLDER AND ALLUSERS &lt;&gt; 1" />
   <?endif?>
   <SetProperty Id="INSTALLFOLDER" Action="CraftRestoreMachineFolder" Value="[CRAFT_MACHINE_DIR]" Before="CraftRestoreUserFolder" Sequence="both" Condition="NOT INSTALLFOLDER AND ALLUSERS = 1 AND CRAFT_MACHINE_DIR" />
-  <Launch Condition="Installed OR ALLUSERS &lt;&gt; 1 OR NOT CRAFT_USER_DIR" Message="This app is already installed for your account. Choose Only for me to update it, or uninstall that copy before changing who it is installed for." />
-  <Launch Condition="Installed OR ALLUSERS = 1 OR NOT CRAFT_MACHINE_DIR" Message="This app is already installed for everyone. Choose Everyone to update it, or pass ALLUSERS=1 to msiexec. Uninstall that copy before changing who it is installed for." />
+  <Launch Condition="Installed OR ALLUSERS &lt;&gt; 1 OR NOT CRAFT_USER_DIR" Message="이 앱은 이미 현재 계정용으로 설치되어 있습니다. 업데이트하려면 '나만 사용'을 선택하세요. 사용 대상을 바꾸려면 먼저 기존 설치를 제거하세요." />
+  <Launch Condition="Installed OR ALLUSERS = 1 OR NOT CRAFT_MACHINE_DIR" Message="이 앱은 이미 이 컴퓨터의 모든 사용자용으로 설치되어 있습니다. 업데이트하려면 '이 컴퓨터의 모든 사용자'를 선택하거나 msiexec에 ALLUSERS=1을 지정하세요. 사용 대상을 바꾸려면 먼저 기존 설치를 제거하세요." />
   <UI>
-    <TextStyle Id="CraftScopeText" FaceName="Segoe UI" Size="9" />
-    <TextStyle Id="CraftScopeTitle" FaceName="Segoe UI" Size="12" Bold="yes" />
-    <Dialog Id="CraftScopeDlg" Width="370" Height="220" Title="[ProductName] Setup" NoMinimize="yes">
-      <Control Id="Title" Type="Text" X="20" Y="15" Width="330" Height="30" Text="{\CraftScopeTitle}Who should use [ProductName]?" />
-      <Control Id="Info" Type="Text" X="20" Y="50" Width="330" Height="30" Text="{\CraftScopeText}An update keeps the existing folder. New copies use the JeongEEE folder under Programs." />
+    <TextStyle Id="CraftScopeText" FaceName="Malgun Gothic" Size="9" />
+    <TextStyle Id="CraftScopeTitle" FaceName="Malgun Gothic" Size="12" Bold="yes" />
+    <Dialog Id="CraftScopeDlg" Width="370" Height="220" Title="[ProductName] 설치" NoMinimize="yes">
+      <Control Id="Title" Type="Text" X="20" Y="15" Width="330" Height="30" Text="{\CraftScopeTitle}[ProductName]를 누가 사용하나요?" />
+      <Control Id="Info" Type="Text" X="20" Y="50" Width="330" Height="30" Text="{\CraftScopeText}업데이트는 기존 설치 폴더를 그대로 사용합니다. 새로 설치하면 Programs 아래 JeongEEE 폴더에 설치됩니다." />
       <Control Id="Scope" Type="RadioButtonGroup" X="20" Y="88" Width="330" Height="60" Property="CRAFT_SCOPE">
         <RadioButtonGroup Property="CRAFT_SCOPE">
-          <RadioButton Value="user" X="0" Y="0" Width="330" Height="20" Text="Only for me (no administrator permission needed)" />
-          <RadioButton Value="machine" X="0" Y="30" Width="330" Height="20" Text="Everyone on this computer (asks an administrator)" />
+          <RadioButton Value="user" X="0" Y="0" Width="330" Height="20" Text="나만 사용 (관리자 권한 필요 없음)" />
+          <RadioButton Value="machine" X="0" Y="30" Width="330" Height="20" Text="이 컴퓨터의 모든 사용자 (관리자 권한 요청)" />
         </RadioButtonGroup>
       </Control>
-      <Control Id="Next" Type="PushButton" X="214" Y="182" Width="66" Height="20" Default="yes" Text="Next">
+      <Control Id="Next" Type="PushButton" X="214" Y="182" Width="66" Height="20" Default="yes" Text="다음">
         <Publish Property="ALLUSERS" Value="1" Order="1" Condition="CRAFT_SCOPE = &quot;machine&quot;" />
         <Publish Property="ALLUSERS" Value="{}" Order="2" Condition="CRAFT_SCOPE = &quot;user&quot;" />
         <Publish Property="MSIINSTALLPERUSER" Value="{}" Order="3" Condition="CRAFT_SCOPE = &quot;machine&quot;" />
         <Publish Property="MSIINSTALLPERUSER" Value="1" Order="4" Condition="CRAFT_SCOPE = &quot;user&quot;" />
         <Publish Event="EndDialog" Value="Return" Order="5" />
       </Control>
-      <Control Id="Cancel" Type="PushButton" X="290" Y="182" Width="60" Height="20" Cancel="yes" Text="Cancel"><Publish Event="EndDialog" Value="Exit" /></Control>
+      <Control Id="Cancel" Type="PushButton" X="290" Y="182" Width="60" Height="20" Cancel="yes" Text="취소"><Publish Event="EndDialog" Value="Exit" /></Control>
     </Dialog>
   </UI>
   <InstallUISequence>
