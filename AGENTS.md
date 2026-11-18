@@ -7,9 +7,10 @@ upstream contribution workflow below for work in this fork.
 - Develop, commit and push personal changes on `my-custom`. Stage only the task's explicit paths.
 - Upstream issue claims, upstream PR requirements and shared-CI-only policies apply when
   contributing upstream. Do not post upstream issues/comments for personal fork work.
-- Fork releases are built locally on each OS and uploaded to this fork's GitHub releases.
-  Never use Actions for fork deployment and keep upstream workflows intact. Publish a release
-  only when the user asked for it; both OS builds use the same source SHA and version.
+- `deploy-macos.sh` and `deploy-windows.ps1` build locally and upload to a shared draft release.
+  Never invoke Actions for fork deployment. Keep upstream workflows intact. Finalize publishes
+  without a prompt, so run it (or a non-`--draft` deploy) only when the user asked to release.
+  Two OS builds must use the same source SHA and version.
 - Keep app name `Word`, maintainer `JeongEEE`, bundle id `io.github.jeongeee.word`, updater
   app id `word` and updater repository `JeongEEE/wordcraft` independent from upstream. Cargo
   package/crate names, command ids and `WORDCRAFT_*` environment variables remain unchanged.
