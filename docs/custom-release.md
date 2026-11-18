@@ -219,7 +219,8 @@ CLI 검사를 실행한다. CLI 검사는 `word-cli --version`에 배포 버전�
 - 개인키 정본: `~/Dev/keystores/word/update-private-key.hex`. 저장소 밖이며 디렉터리 권한
   `700`, 파일 권한 `600`. 저장소를 지우거나 다시 클론해도 유지한다.
 - 공개키: `crates/update/public-key.hex`에 고정해 git에 커밋한다. 환경변수로 덮어쓰는
-  런타임 우회는 없고, `cargo test -p wordcraft-update`가 고정값을 확인한다.
+  런타임 우회는 없고, `cargo test -p wordcraft-update`가 고정값을 확인한다. 개인키가 고정
+  공개키와 다르면 `word-update-sign`이 서명을 거부해 공개 전에 멈춘다.
 - 개인키 값은 세션·명령 인자·출력·git에 넣지 않는다. 배포 스크립트가 파일에서 읽어
   `WORD_UPDATE_PRIVATE_KEY` 환경변수로 서명 하위 프로세스(`word-update-sign`)에만 전달한다.
   파일 위치는 `WORD_UPDATE_KEY_FILE` 또는 `--key-file`로 바꾼다.
@@ -228,6 +229,8 @@ CLI 검사를 실행한다. CLI 검사는 `word-cli --version`에 배포 버전�
   전파되지 않는다.
 
 키 생성은 소유자가 최초 한 번만 한다(이미 완료). 공개키는 앱 빌드 전에 커밋한다.
+**이미 만들었으므로 다시 실행하지 않는다.** keygen은 기존 파일이 있으면 거부하지만 마지막
+`cp`는 고정 공개키를 덮어쓴다.
 
 ```sh
 umask 077

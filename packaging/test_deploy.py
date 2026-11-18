@@ -525,6 +525,9 @@ class LocalDeployTest(unittest.TestCase):
         env = {'GIT_CONFIG_COUNT':'1', 'GIT_CONFIG_KEY_0':f'url.{upstream}.insteadOf', 'GIT_CONFIG_VALUE_0':local_build.I18N_URL}
         if configured: env['CRAFT_I18N_DIR'] = str(configured)
         with patch.dict(os.environ, env), patch.object(deploy,'ROOT',self.repo):
+            # the shell's own CRAFT_* directories must not leak into the test
+            for k in ('CRAFT_I18N_DIR','CRAFT_FONTS_DIR'):
+                if not (k == 'CRAFT_I18N_DIR' and configured): os.environ.pop(k, None)
             d = deploy.Deployment(argparse.Namespace(platform='macos'))
         d.sha = self.git('rev-parse','HEAD'); d.common = self.repo/'.git'
         return d
