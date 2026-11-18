@@ -170,6 +170,8 @@ Remove-Item -Force -ErrorAction SilentlyContinue ([IO.Path]::ChangeExtension($Ms
 $Portable = Join-Path $TargetDir "windows-package\word-$Version-windows-$Arch-portable"
 Remove-Item -Recurse -Force $Portable -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Portable | Out-Null
+# Everything copied into the portable ZIP must also be listed in shipped_name() in
+# crates/update/src/install.rs, or the in-app updater rejects the archive.
 Copy-Item (Join-Path $Stage '*.exe') $Portable
 foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ATTRIBUTION.md') {
   $p = Join-Path $Root $f

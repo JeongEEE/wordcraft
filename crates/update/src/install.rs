@@ -27,6 +27,9 @@ fn safe_name(name: &str) -> bool {
         && !(stem.len() == 4 && (stem.starts_with("COM") || stem.starts_with("LPT")) && stem.ends_with(|c: char| c.is_ascii_digit()))
 }
 
+// Files the portable ZIP may contain. Keep in sync with the "portable zip" section of
+// packaging/windows/package.ps1: a file added there but not here makes every update fail with
+// "Unsafe or duplicate file in the Word update archive".
 fn shipped_name(name: &str) -> bool {
     matches!(name, "word.exe" | "word-cli.exe" | "README.md" | "LICENSE" | "LICENSE-MIT" | "LICENSE-APACHE" | "NOTICE" | "ATTRIBUTION.md")
         || (name.starts_with("OFL-") && name.ends_with(".txt"))
