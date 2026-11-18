@@ -1384,3 +1384,21 @@ fn diagram_tab_display_keeps_the_legacy_identity() {
     assert_eq!(location("SmartArt Design › Diagram Styles"), "Diagram-FX › Styles-FX");
     set_current(Lang::EN);
 }
+
+/// The fork's own strings come from its Korean table before the catalogs, in Korean only; the
+/// catalogs still answer everything else, and other languages see the English.
+#[test]
+fn the_forks_own_strings_have_their_korean_table() {
+    let ko = fixture_lang("ko", "\tHome\t홈\n\tRestart to Update\t카탈로그 문구\n");
+    assert_eq!(tr(ko, "Restart to Update"), "재시작하여 업데이트", "the fork's table comes first");
+    assert_eq!(tr(ko, "About Word"), "Word 정보");
+    assert_eq!(tr(ko, "Word {version} is up to date."), "Word {version} — 최신 버전입니다.");
+    assert_eq!(tr(ko, "Home"), "홈", "upstream strings stay with the catalog");
+    assert_eq!(tr(ko, "Not a fork string"), "Not a fork string");
+    let other = fixture_lang("x-fixture", "\tHome\tHome-FX\n");
+    assert_eq!(tr(other, "Restart to Update"), "Restart to Update");
+    assert_eq!(tr(Lang::EN, "About Word"), "About Word");
+    set_current(ko);
+    assert_eq!(t("Later"), "나중에", "tl! reads it too");
+    set_current(Lang::EN);
+}

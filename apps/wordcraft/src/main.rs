@@ -130,6 +130,8 @@ impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {
         self.0.ui(ui);
         self.3.show(frame);
+        // An update's helper waits for the new Word's first frame before it calls the update done.
+        wordcraft_update::helper::acknowledge_startup();
     }
     fn on_exit(&mut self) {
         print::finish_pending_jobs();
@@ -572,9 +574,12 @@ fn main() -> eframe::Result {
     if let Some(code) = print::isolated::helper_mode() {
         std::process::exit(code);
     }
-    // Windows: the update helper is a copy of this program started with `--finish-update`.
-    #[cfg(windows)]
-    if let Some(result) = craft_update::self_update::finish(&wordcraft_ui_egui::UPDATE_APP, &std::env::args_os().skip(1).collect::<Vec<_>>()) {
+    // The update helper is a copy of this program started with `--word-update-helper`: it installs
+    // the verified update once this Word has exited, starts the new one and exits.
+    if let Some(result) = wordcraft_update::helper::finish(&std::env::args_os().skip(1).collect::<Vec<_>>()) {
+        if let Err(e) = &result {
+            let _ = std::io::Write::write_fmt(&mut std::io::stderr(), format_args!("Word update helper failed: {e}\n"));
+        }
         std::process::exit(i32::from(result.is_err()));
     }
     // Linux: before anything reads another program's AppImage variables, or a thread starts (#5653).

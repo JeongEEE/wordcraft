@@ -96,6 +96,8 @@ pollster = "1"
 arboard = { workspace = true, features = ["image-data"] }
 # The control server's random key.
 getrandom = "0.3"
+# The update helper (`--word-update-helper`) and the first-frame signal of an updated Word.
+wordcraft-update = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 craft-update = { workspace = true }

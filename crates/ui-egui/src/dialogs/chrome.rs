@@ -220,7 +220,9 @@ pub fn show(app: &mut WordApp, ctx: &egui::Context) {
         Dialog::Layout(d) => d.title(),
     };
     let id = egui::Id::unique(("dialog", title));
-    let window = crate::window_close::window(ctx, egui::Window::new(tl!(title)).id(id).collapsible(false).resizable(false));
+    // "Word" (Save Changes) is the app's name, not the word: never translated.
+    let heading = if title == "Word" { title } else { tl!(title) };
+    let window = crate::window_close::window(ctx, egui::Window::new(heading).id(id).collapsible(false).resizable(false));
     // A file browser or Colors dialog it opened is above it and takes the keys: Escape or Enter
     // there doesn't also cancel or OK this one.
     let held = (app.file_browser_open() || app.colors.is_some()).then(|| ctx.input_mut(|i| std::mem::take(&mut i.events)));

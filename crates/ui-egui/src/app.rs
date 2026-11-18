@@ -233,7 +233,18 @@ impl WordApp {
     /// Whether a modal dialog is open: the rest of the window takes no clicks, keys or
     /// shortcuts until it closes (#3859).
     pub(crate) fn modal_open(&self) -> bool {
-        self.file_browser_open() || self.dialog.as_ref().is_some_and(crate::dialogs::Dialog::is_modal) || self.colors.is_some()
+        self.file_browser_open()
+            || self.dialog.as_ref().is_some_and(crate::dialogs::Dialog::is_modal)
+            || self.colors.is_some()
+            || self.update_prompt_open()
+    }
+
+    /// The update's restart prompt is up (`updates_ui`).
+    fn update_prompt_open(&self) -> bool {
+        #[cfg(not(target_arch = "wasm32"))]
+        return self.updates_rt.modal;
+        #[cfg(target_arch = "wasm32")]
+        false
     }
 
     /// Terminal feedback also reaches the normal window when printing starts through control.

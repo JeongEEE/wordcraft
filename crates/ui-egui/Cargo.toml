@@ -46,6 +46,8 @@ zbus = "=5.19.0"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
 craft-update = { workspace = true }
+# The fork's signed updates (Word releases on JeongEEE/wordcraft), which `updates_ui` drives.
+wordcraft-update = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # The browser clock (`SystemTime::now()`/`Instant::now()` panic on wasm32).

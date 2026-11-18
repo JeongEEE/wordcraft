@@ -238,6 +238,9 @@ impl WordApp {
         }
         let last = self.session.documents().len() <= 1;
         if params.get("quit").and_then(Value::as_bool) == Some(true) {
+            // Restart to Update reopens the file this answer saved the document to.
+            #[cfg(not(target_arch = "wasm32"))]
+            crate::updates_ui::remember_restart_document(self);
             if last {
                 // Don't Save: the document stays open until the app exits, but its changes,
                 // and so its recovery copy, are discarded.
