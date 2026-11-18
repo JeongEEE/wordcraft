@@ -2389,9 +2389,12 @@ fn the_page_waits_for_the_keyboard_until_a_modal_dialog_closes() {
     assert_eq!(h.state().session.doc.plain_text(wordcraft_doc::StoryRef::Body), "!", "the page has it after the dialog");
 }
 
-/// Drags from `at` to 30 points right in `h`, and counts the window drags the app asked for.
-fn window_drags(h: &mut egui_kittest::Harness<WordApp>, at: egui::Pos2) -> usize {
-    let mut drags = 0;
+/// Drags from `at` to 30 points right in `h`, and tells whether the app asked to move the window:
+/// by `StartDrag`, or on macOS, where that does nothing, by `OuterPosition`.
+fn window_drags(h: &mut egui_kittest::Harness<WordApp>, at: egui::Pos2) -> bool {
+    let mut drags = false;
+    h.input_mut().viewports.entry(egui::ViewportId::ROOT).or_default().outer_rect =
+        Some(egui::Rect::from_min_size(egui::pos2(300.0, 200.0), vec2(1200.0, 800.0)));
     let button = |pos, pressed| egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::NONE };
     let events = [egui::Event::PointerMoved(at), button(at, true)]
         .into_iter()
@@ -2400,7 +2403,13 @@ fn window_drags(h: &mut egui_kittest::Harness<WordApp>, at: egui::Pos2) -> usize
     for e in events {
         h.event(e);
         h.step();
-        drags += h.output().viewport_output.values().flat_map(|v| &v.commands).filter(|c| matches!(c, egui::ViewportCommand::StartDrag)).count();
+        drags |= h.output().viewport_output.values().flat_map(|v| &v.commands).any(|c| {
+            if cfg!(target_os = "macos") {
+                matches!(c, egui::ViewportCommand::OuterPosition(_))
+            } else {
+                matches!(c, egui::ViewportCommand::StartDrag)
+            }
+        });
     }
     drags
 }
@@ -2420,7 +2429,7 @@ fn the_window_moves_by_its_title_bar_behind_a_modal_dialog() {
         h.state_mut().dialog = font;
         h.run_steps(4);
         let at = egui::pos2(if backstage { 100.0 } else { 300.0 }, 12.0);
-        assert_eq!(window_drags(&mut h, at), usize::from(mac), "macOS: {mac}, File: {backstage}");
+        assert_eq!(window_drags(&mut h, at), mac, "macOS: {mac}, File: {backstage}");
         assert!(matches!(h.state().dialog, Some(Dialog::Font { .. })), "Font stays");
         assert_eq!(h.state().ui.backstage, backstage, "nothing behind it opened or closed");
     }
@@ -2467,7 +2476,7 @@ fn the_title_bar_moves_the_window_in_every_modal_state() {
             open_modal_state(h.state_mut(), state);
             h.run_steps(4);
             assert_eq!(h.state().modal_open(), modal, "{state}");
-            assert_eq!(window_drags(&mut h, egui::pos2(300.0, 12.0)), usize::from(mac || !modal), "{state}, macOS: {mac}");
+            assert_eq!(window_drags(&mut h, egui::pos2(300.0, 12.0)), mac || !modal, "{state}, macOS: {mac}");
             assert_eq!(h.state().modal_open(), modal, "{state} stays open");
         }
     }
@@ -2494,9 +2503,9 @@ fn a_drag_on_a_dialog_over_the_title_bar_doesnt_move_the_window() {
     let rect = h.ctx.memory(|m| m.area_rect(egui::Id::unique(("dialog", "Font")))).expect("the dialog is open");
     let at = egui::pos2(rect.center().x, rect.top() + 8.0);
     assert!(at.y < 30.0, "the dialog reaches over the title bar: {rect:?}");
-    assert_eq!(window_drags(&mut h, at), 0, "a drag on its title");
+    assert!(!window_drags(&mut h, at), "a drag on its title");
     let rect = h.ctx.memory(|m| m.area_rect(egui::Id::unique(("dialog", "Font")))).expect("the dialog is open");
-    assert_eq!(window_drags(&mut h, egui::pos2(rect.center().x, rect.top() + 1.0)), 0, "nor just inside its edge");
+    assert!(!window_drags(&mut h, egui::pos2(rect.center().x, rect.top() + 1.0)), "nor just inside its edge");
 }
 
 #[test]

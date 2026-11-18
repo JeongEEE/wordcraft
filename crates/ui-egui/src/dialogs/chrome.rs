@@ -72,9 +72,8 @@ fn count_dialog_frame(ctx: &egui::Context, id: egui::Id) {
 /// title bar.
 pub(crate) fn drag_by_title_bar(ctx: &egui::Context, backdrop: &egui::Response, window: egui::Rect) {
     let origin = ctx.input(|i| i.pointer.press_origin()).filter(|p| !window.contains(*p));
-    if backdrop.drag_started() && origin.is_some_and(|p| crate::chrome::title_drag_rect(ctx).is_some_and(|r| r.contains(p))) {
-        ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag);
-    }
+    let on_title_bar = origin.is_some_and(|p| crate::chrome::title_drag_rect(ctx).is_some_and(|r| r.contains(p)));
+    crate::chrome::drag_window(ctx, backdrop, on_title_bar);
 }
 
 /// Makes `window` modal (#3859): the document gives up the keyboard now, and from the next frame

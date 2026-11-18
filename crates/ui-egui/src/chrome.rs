@@ -303,6 +303,37 @@ pub(crate) fn title_drag_rect(ctx: &egui::Context) -> Option<Rect> {
     ctx.data(|d| d.get_temp::<(Rect, u64)>(key)).filter(|(_, p)| *p == pass).map(|(r, _)| r)
 }
 
+/// Moves the window while `drag` is dragged, if the drag may start one (`allowed`, decided when
+/// it starts). On macOS `StartDrag` does nothing: winit's `performWindowDragWithEvent` gets the
+/// event AppKit is handling when eframe applies the command after the frame, not the press, and
+/// the winit fork keeps AppKit from moving the window by its title-bar band. So there the window
+/// follows the pointer: the pressed point stays under it. Only on frames with a pointer event:
+/// after a move the last position is relative to where the window was, so reusing it would push
+/// the window on every repaint until release. Not `delta()`: it is window-relative, so it reads
+/// zero when the window kept pace with the pointer. The press point is kept from the drag start
+/// because egui forgets it on release.
+// ponytail: no native snapping or Spaces drag on macOS; a winit drag that keeps the mouse-down event would give both.
+pub(crate) fn drag_window(ctx: &egui::Context, drag: &egui::Response, allowed: bool) {
+    if !cfg!(target_os = "macos") {
+        if allowed && drag.drag_started() {
+            ctx.send_viewport_cmd(egui::ViewportCommand::StartDrag);
+        }
+        return;
+    }
+    if drag.drag_started() {
+        let press = ctx.input(|i| i.pointer.press_origin()).filter(|_| allowed);
+        ctx.data_mut(|d| d.insert_temp(drag.id, press));
+    }
+    let moved = ctx.input(|i| i.events.iter().any(|e| matches!(e, egui::Event::PointerMoved(_))));
+    if (drag.dragged() || drag.drag_stopped()) && moved {
+        let press = ctx.data(|d| d.get_temp::<Option<egui::Pos2>>(drag.id)).flatten();
+        let (outer, now) = ctx.input(|i| (i.viewport().outer_rect, i.pointer.latest_pos()));
+        if let (Some(outer), Some(press), Some(now)) = (outer, press, now) {
+            ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(outer.min + (now - press)));
+        }
+    }
+}
+
 /// Draws the title bar with window dragging, AutoSave, quick access, account, community and search
 /// controls, and the centred clickable document title.
 pub fn title_bar(app: &mut WordApp, ui: &mut Ui) {
@@ -320,9 +351,7 @@ pub fn title_bar(app: &mut WordApp, ui: &mut Ui) {
             let full = ui.max_rect();
             // Drag the window by the title bar (integrated title bar on macOS).
             let drag = ui.interact(full, ui.scope_id().with("title_drag"), Sense::click_and_drag());
-            if drag.drag_started() {
-                ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
-            }
+            drag_window(ui.ctx(), &drag, true);
             // Elsewhere the system's own title bar above this one moves the window.
             if mac {
                 note_title_drag(ui.ctx(), full);
