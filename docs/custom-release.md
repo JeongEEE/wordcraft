@@ -5,8 +5,6 @@ Word는 `JeongEEE/wordcraft`에서 관리하는 WordCraft 기반 개인 워드 �
 `wordcraft`와 `wordcraft-cli`다. 원본의 crate 이름, 명령 ID, `WORDCRAFT_*` 환경변수를
 유지해 업스트림 변경을 계속 받아들인다.
 
-> 초안: 자동 업데이트 절은 아직 쓰지 않았다.
-
 ## 브랜치와 원격
 
 | 대상 | 역할 |
@@ -182,12 +180,9 @@ Windows PC에는 업데이트 개인키가 없어도 된다. 두 OS가 모이면
 ./deploy-macos.sh 0.18.2 --finalize
 ```
 
-개인키 기본 경로는 `~/Dev/keystores/word/update-private-key.hex`다. 다른 위치는
-`WORD_UPDATE_KEY_FILE` 또는 `--key-file <경로>`로 지정한다. Windows는 `-KeyFile <경로>`와
-`-Finalize`를 쓴다. 소스·GitHub 자산·로그에 개인키를 올리지 않는다. 스크립트는 시작할 때
-자기 환경에서 `WORD_UPDATE_PRIVATE_KEY`를 지우고, 키는 `word-update-sign` 자식 프로세스의
-환경에만 전달한다. 서명기는 키가 `crates/update/public-key.hex`의 고정 공개키와 맞을 때만
-서명하므로, 공개키 파일이 비어 있으면 서명 단계에서 실패하고 초안은 공개되지 않는다.
+개인키는 아래 "업데이트 서명 키" 절의 위치에 둔다. 다른 위치는
+`WORD_UPDATE_KEY_FILE` 또는 `--key-file <경로>`로 지정하며 Windows는 `-KeyFile <경로>`와
+`-Finalize`를 쓴다.
 
 두 플랫폼을 내려받아 증빙의 버전·SHA·글꼴·번역 커밋·검증 기록·파일 해시를 확인하고,
 `WordUpdate.json`·`WordUpdate.sig`와 체크섬을 만든다. 업로드한 최종 9개 자산의 바이트도
@@ -216,6 +211,32 @@ CLI 검사를 실행한다. CLI 검사는 `word-cli --version`에 배포 버전�
 
 배포 오케스트레이터 회귀 테스트는 `python3 packaging/test_deploy.py`다. 임시 git
 원격과 통제된 GitHub/컴파일러 경계를 사용하며 실제 배포·공개를 수행하지 않는다.
+
+## 업데이트 서명 키
+
+자동 업데이트는 릴리스 목록(`WordUpdate.json`)의 서명을 앱에 고정된 공개키로 검증한다.
+
+- 개인키 정본: `~/Dev/keystores/word/update-private-key.hex`. 저장소 밖이며 디렉터리 권한
+  `700`, 파일 권한 `600`. 저장소를 지우거나 다시 클론해도 유지한다.
+- 공개키: `crates/update/public-key.hex`에 고정해 git에 커밋한다. 환경변수로 덮어쓰는
+  런타임 우회는 없고, `cargo test -p wordcraft-update`가 고정값을 확인한다.
+- 개인키 값은 세션·명령 인자·출력·git에 넣지 않는다. 배포 스크립트가 파일에서 읽어
+  `WORD_UPDATE_PRIVATE_KEY` 환경변수로 서명 하위 프로세스(`word-update-sign`)에만 전달한다.
+  파일 위치는 `WORD_UPDATE_KEY_FILE` 또는 `--key-file`로 바꾼다.
+- **키를 잃으면 이미 설치된 Word가 새 키를 믿지 못해 더는 업데이트할 수 없고, 사용자가
+  직접 재설치해야 한다.** 개인키를 안전한 곳에 따로 백업한다. 키 교체는 자동으로
+  전파되지 않는다.
+
+키 생성은 소유자가 최초 한 번만 한다(이미 완료). 공개키는 앱 빌드 전에 커밋한다.
+
+```sh
+umask 077
+mkdir -m 700 "$HOME/Dev/keystores/word"
+cargo run --locked -p wordcraft-update --bin word-update-sign -- keygen \
+  "$HOME/Dev/keystores/word/update-private-key.hex" \
+  "$HOME/Dev/keystores/word/update-public-key.hex"
+cp "$HOME/Dev/keystores/word/update-public-key.hex" crates/update/public-key.hex
+```
 
 ## 버전과 릴리스
 
