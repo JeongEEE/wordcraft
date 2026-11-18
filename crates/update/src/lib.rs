@@ -25,7 +25,7 @@ pub const APP: craft_update::App = craft_update::App {
 };
 
 /// Release builds pin this key in source. No environment variable may change an installed
-/// application's trust root. Empty means fail closed until the owner provisions their key.
+/// application's trust root. A missing or malformed key fails closed.
 pub fn public_key() -> Result<Vec<u8>, String> {
     pinned_key(include_str!("../public-key.hex"))
 }
@@ -48,10 +48,11 @@ mod tests {
         assert_eq!(super::pinned_key(&format!("{}\n", "ab".repeat(32))).unwrap(), vec![0xab; 32]);
     }
 
-    /// Until the owner pins Word's release key (crates/update/public-key.hex), every update is
-    /// refused. Replace this with a test pinning that key's value once it is committed.
+    /// Word's release public key is pinned in source. Changing it strands every installed copy
+    /// (they would no longer trust new releases), so a change here must be deliberate.
     #[test]
-    fn unprovisioned_release_key_refuses_updates() {
-        assert!(super::public_key().is_err());
+    fn pinned_release_key_matches_owner_key() {
+        let expected = "5a9e43dc63688c6b80cb681534a656b5590c55162a8535723021ff20d53e11c7";
+        assert_eq!(super::public_key().unwrap(), super::manifest::decode_hex(expected).unwrap());
     }
 }
