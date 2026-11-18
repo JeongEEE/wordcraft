@@ -149,10 +149,12 @@ $rtf = '{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fswiss\fcharset0 Tahoma;}}\vi
 # One MSI from one dual-scope source (see wordcraft.wxs and install-policy.wxi): per user by default into
 # %LOCALAPPDATA%\Programs\JeongEEE\Word (#39), per machine into Program Files\JeongEEE on request.
 $Msi = Join-Path $Dist "word-$Version-windows-$Arch.msi"
+# -culture ko-KR makes WixUI_Minimal's stock dialogs Korean; en-US is the fallback for any string the
+# WixUI extension has no Korean text for, so the build never fails on a missing translation.
 Invoke-Native "wix build" {
   wix build (Join-Path $PSScriptRoot 'wordcraft.wxs') -arch $Arch `
     -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
-    -culture ko-KR `
+    -culture ko-KR -culture en-US `
     -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\wordcraft.ico')" `
     -d "LicenseRtf=$LicenseRtf" `
     -d "AppNoticesDir=$AppNotices" -d "DocsDir=$Docs" -d "HasCraftFontLicences=$HasCraftFontLicences" -d "Scope=perUserOrMachine" `

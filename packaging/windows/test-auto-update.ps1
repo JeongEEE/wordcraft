@@ -1,3 +1,4 @@
+#requires -Version 7
 # DISPOSABLE WINDOWS ENVIRONMENT ONLY (CI runner or throwaway VM). This script installs, upgrades and
 # UNINSTALLS the Word MSI with msiexec. Never run it on a personal PC: it would remove the Word you use.
 # It refuses to run unless WORD_DISPOSABLE_WINDOWS=1 is set and no Word registry key exists.
