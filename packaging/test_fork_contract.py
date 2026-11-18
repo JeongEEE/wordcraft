@@ -81,6 +81,14 @@ class WindowsInstall(unittest.TestCase):
         self.assertTrue(progids)
         self.assertTrue(all(p.startswith("JeongEEE.Word.") for p in progids), progids)
 
+    def test_shortcuts_do_not_take_microsoft_words_name(self):
+        # Microsoft 365 installs `Word.lnk` in the same Start menu folder: a per-machine Word
+        # would overwrite it, and uninstalling would delete Microsoft Word's entry.
+        shortcuts = list(wxs().iter(f"{WIX}Shortcut"))
+        self.assertTrue(shortcuts)
+        for s in shortcuts:
+            self.assertNotEqual(s.attrib["Name"].casefold(), "word", s.attrib["Id"])
+
     def test_file_types_are_open_with_candidates_only(self):
         # A value without a name on `Software\Classes\.<ext>` would take over the default app.
         for v in wxs().iter(f"{WIX}RegistryValue"):

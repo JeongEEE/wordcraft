@@ -45,6 +45,7 @@ cargo xtask ci
 | Windows 설정 / registry | `%APPDATA%\Word` / `Software\JeongEEE\Word` |
 | Windows ProgID | `JeongEEE.Word.Document` 등 `JeongEEE.Word.*` (MS Word의 `Word.Document.*`와 겹치지 않게) |
 | Windows RegisteredApplications 이름 | `JeongEEE.Word` |
+| Windows 시작 메뉴 바로가기 | `Word (JeongEEE)` (MS Word의 `Word.lnk`와 같은 폴더라 이름을 구별) |
 | Windows UpgradeCode | `6BE9BB68-D1FF-4740-95DA-EB6D2B37870C` |
 | Windows component GUID | 앱 `8EA63E2E-34D5-4E6E-987B-B34DEDF45D27`, 파일 형식 `F8BD16B6-8DF5-4988-A52B-0C7CECE66CE7` |
 | 실행 파일 | `word.exe`, `word-cli.exe` / macOS `Word.app`, `word-cli` |
