@@ -63,6 +63,7 @@ impl RawWindowState {
             outer_rect: self.outer_rect.map(rect),
             screen_rect: self.screen_rect.map(rect),
             monitor_size: self.monitor_size.map(|s| s * zoom),
+            primary_monitor_rect: self.primary_monitor_rect.map(rect),
             ..self
         }
     }
@@ -312,6 +313,16 @@ mod tests {
         assert_eq!(WindowGeometry::track(None, &reported).map(|g| g.width), Some(960.0), "as reported it would shrink");
         assert_eq!(WindowGeometry::track(None, &reported.at_zoom_one(1.25)), Some(saved()));
         assert_eq!(reported.at_zoom_one(f32::NAN), reported, "a zoom that can't be real changes nothing");
+    }
+
+    /// Under a zoomed interface the monitor is reported in zoom points too; the saved one is in
+    /// zoom-1 points. Compared as reported they differ, and the window is moved off its monitor.
+    #[test]
+    fn the_same_monitor_at_another_zoom_is_not_rescued() {
+        let rect = egui::Rect::from_min_size(egui::pos2(80.0, 40.0), egui::vec2(960.0, 640.0));
+        let reported = raw(rect, egui::vec2(1536.0, 864.0));
+        assert!(saved().rescue_position(&reported).is_some(), "as reported it looks like another monitor");
+        assert_eq!(saved().rescue_position(&reported.at_zoom_one(1.25)), None);
     }
 
     #[test]

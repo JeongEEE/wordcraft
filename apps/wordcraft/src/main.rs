@@ -59,19 +59,28 @@ impl eframe::App for App {
     fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         #[cfg(target_os = "macos")]
         apple_events::poll(&self.5, &mut self.0, ctx);
+        // The host reported this frame's window in points at this zoom and scale. `logic` may
+        // change the zoom, so read both first.
+        let (zoom, pixels_per_point) = (ctx.zoom_factor(), ctx.pixels_per_point());
         self.0.logic(ctx);
         self.3.show(frame);
         let mut window = self.4;
         // Only until the off-screen check below has run: it is the one reader.
         if self.1.is_some() {
-            let (on_a_monitor, primary_monitor_rect) = monitor_geometry(frame, ctx.pixels_per_point());
+            let (on_a_monitor, primary_monitor_rect) = monitor_geometry(frame, pixels_per_point);
             window.on_a_monitor = on_a_monitor;
             window.primary_monitor_rect = primary_monitor_rect;
         }
+        // Everything below compares with the saved geometry, which is in points at zoom 1 (the
+        // next start makes the window with the zoom still at 1). Commands and the window builder
+        // take points at the zoom in force when they are used: `to_current` converts for them.
+        let window = window.at_zoom_one(zoom);
+        let to_current = |v: egui::Vec2| v / ctx.zoom_factor();
         // A window that doesn't fit on its screen (the default size on a laptop) shrinks to fit
         // there, so all of the scroll bar can be dragged (#1215). Checked on the frame that first
         // knows the monitor: the off-screen check below takes the pending geometry then.
         if let Some((pos, size)) = self.1.and_then(|g| g.fit_on_monitor(&window)) {
+            let (size, pos) = (to_current(size), to_current(pos.to_vec2()).to_pos2());
             ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(size));
             ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(pos));
             let b = self.0.window_builder().clone().with_inner_size(size);
@@ -83,19 +92,19 @@ impl eframe::App for App {
         // the root window's for this frame.
         let active = self.0.active_viewport();
         let tracked = if active == egui::ViewportId::ROOT {
-            window
+            self.4
         } else {
             ctx.input_for(active, |i| RawWindowState::from_viewport(Some(i.viewport()), Some(i.viewport_rect())))
         };
-        // In points at zoom 1, which is what the next start's window is made in. (ponytail: the zoom
-        // read here is the one after this frame's change, so the frame a change lands on saves a
-        // wrong size; the next frame saves the right one.)
-        self.0.ui.window = WindowGeometry::track(prev, &tracked.at_zoom_one(ctx.zoom_factor()));
+        // (A non-root window's values are from its last paint, so on the frame the zoom changes
+        // they are converted with the zoom that frame was reported at, not the one they were painted
+        // at; the next frame saves the right ones.)
+        self.0.ui.window = WindowGeometry::track(prev, &tracked.at_zoom_one(zoom));
         // The first frame, once the monitor is known (as `take_rescue` waits for): maximize a
         // window that opened at its normal size so it never flashed on screen half-opened.
         let maximize = self.1.and_then(|g| g.maximize_after_open()).filter(|_| window.monitor_size.is_some());
         if let Some(pos) = take_rescue(&mut self.1, &window) {
-            ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(pos));
+            ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(to_current(pos.to_vec2()).to_pos2()));
         }
         if let Some(command) = maximize {
             ctx.send_viewport_cmd(command);

@@ -331,6 +331,22 @@ fn the_corner_button_collapses_and_expands_the_ribbon() {
     assert!(!h.state().ui.ribbon_collapsed, "and shows it again");
 }
 
+/// In Focus with the card collapsed, the dropped ribbon has no button of its own: "Show the
+/// ribbon" is the Focus bar's alone.
+#[test]
+fn the_corner_button_is_not_on_the_ribbon_dropped_in_focus() {
+    let mut h = canvas_harness();
+    h.state_mut().ui.ribbon_collapsed = true;
+    h.get_by_label("Focus").click();
+    h.run_steps(3);
+    h.get_by_label("Show the ribbon").click();
+    h.run_steps(3);
+    assert!(h.state().focus_ribbon, "the ribbon dropped down");
+    assert!(h.query_by_label("Insert").is_some());
+    assert!(h.query_by_label("Collapse the ribbon").is_none());
+    assert!(h.query_by_label("Show the ribbon").is_some(), "one button of that name, the Focus bar's");
+}
+
 /// #1678: a Ctrl+F1 the user binds in Customize Keyboard runs their command through the app,
 /// and the ribbon stays as it was.
 #[cfg(not(target_os = "macos"))]
