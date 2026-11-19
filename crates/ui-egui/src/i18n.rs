@@ -436,11 +436,16 @@ pub fn tr(lang: Lang, s: &str) -> &str {
     if pseudo::on() {
         return I18N.t(craft_i18n::Lang::PSEUDO, s);
     }
-    // The fork's own strings, which the catalogs don't have (`fork_ko`).
-    if lang.code() == "ko"
-        && let Some(ko) = fork_ko::get(s)
-    {
-        return ko;
+    // Korean: the fork's own strings first, and upstream strings the catalog lacks last (`fork_ko`).
+    if lang.code() == "ko" {
+        if let Some(ko) = fork_ko::get(s) {
+            return ko;
+        }
+        if !has(lang, s)
+            && let Some(ko) = fork_ko::gap(s)
+        {
+            return ko;
+        }
     }
     lang.i18n().t(lang.lang, s)
 }
