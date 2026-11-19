@@ -79,8 +79,8 @@ const GAP: Table = &[
     ("Convert Line Breaks to Paragraphs", "줄 바꿈을 단락으로 변환"),
     ("Convert Indents to Spaces", "들여쓰기를 공백으로 변환"),
     ("Convert Spaces to Indentation", "공백을 들여쓰기로 변환"),
-    ("Indent Leading Spaces", "앞쪽 공백을 들여쓰기로"),
-    ("Indents to Leading Spaces", "들여쓰기를 앞쪽 공백으로"),
+    ("Indent Leading Spaces", "앞쪽 공백을 들여쓰기로 변환"),
+    ("Indents to Leading Spaces", "들여쓰기를 앞쪽 공백으로 변환"),
     ("Scale Font Sizes", "글꼴 크기 조절"),
     ("Fit\nOne Page", "한 페이지에\n맞추기"),
     ("Fit One Page", "한 페이지에 맞추기"),
@@ -134,8 +134,8 @@ const GAP: Table = &[
     ("Synchronous Scrolling", "동시 스크롤"),
     ("No other WordCraft windows are open.", "열려 있는 다른 WordCraft 창이 없습니다."),
     ("Close Document", "문서 닫기"),
-    ("Select Canvas Member", "캔버스 구성원 선택"),
-    ("Strict Export Report", "엄격 내보내기 보고서"),
+    ("Select Canvas Member", "캔버스 항목 선택"),
+    ("Strict Export Report", "엄격 모드 내보내기 보고서"),
     // Panes
     ("Pane Options", "창 옵션"),
     ("Dock Left", "왼쪽에 도킹"),
@@ -163,8 +163,8 @@ const GAP: Table = &[
         "이 문서에는 Markdown으로 표현할 수 없는 내용이 있습니다. 여기서 텍스트를 바꾸면 그 내용이 사라지며, 이후 실행 취소를 한 번 하면 되돌아옵니다.",
     ),
     ("Markdown Source takes up to 2 MB of text", "Markdown 소스는 텍스트 2 MB까지 다룰 수 있습니다"),
-    ("Nothing to undo", "실행 취소할 내용이 없습니다"),
-    ("Nothing to redo", "다시 실행할 내용이 없습니다"),
+    ("Nothing to undo", "실행 취소할 작업이 없습니다"),
+    ("Nothing to redo", "다시 실행할 작업이 없습니다"),
     (
         "Saved. Edits in the formatted view meant writing the Markdown out again, so its own layout wasn't kept.",
         "저장했습니다. 서식 보기에서 편집해 Markdown을 다시 써야 했으므로 원래 Markdown의 배치는 유지되지 않았습니다.",
@@ -192,7 +192,7 @@ const GAP: Table = &[
     ("Separate text with", "텍스트 구분 기호"),
     ("Mark the whole document as:", "문서 전체를 다음 언어로 표시:"),
     ("Apply to the whole document", "문서 전체에 적용"),
-    ("Spanish (Latin America)", "스페인어(라틴 아메리카)"),
+    ("Spanish (Latin America)", "스페인어(라틴아메리카)"),
     ("Spanish (Uruguay)", "스페인어(우루과이)"),
     ("The number must be a divisor of {max}.", "{max}의 약수여야 합니다."),
     ("Update automatically", "자동으로 업데이트"),
@@ -206,7 +206,6 @@ const GAP: Table = &[
     // Go To, Find, command search
     ("Select a place in this document:", "이 문서에서 위치 선택:"),
     ("Top of the Document", "문서 맨 위"),
-    ("Type a command, e.g. \"insert table\"", "명령을 입력하세요. 예: \"표 삽입\""),
     ("Find “{text}” in the document", "문서에서 “{text}” 찾기"),
     ("Enter bookmark name:", "책갈피 이름 입력:"),
     ("This document has no bookmarks.", "이 문서에는 책갈피가 없습니다."),
@@ -287,7 +286,7 @@ const GAP: Table = &[
     ),
     (
         "None of the fonts this document is missing can be downloaded free of charge from their publisher.",
-        "이 문서에 없는 글꼴 중 발행처에서 무료로 내려받을 수 있는 것이 없습니다.",
+        "이 문서에 없는 글꼴 중 배포처에서 무료로 다운로드할 수 있는 것이 없습니다.",
     ),
     (
         "Text in a missing font is shown in another font, so it may not look as it was written. The downloads are free of charge.",
@@ -298,7 +297,7 @@ const GAP: Table = &[
     ("Download from {publisher}", "{publisher}에서 다운로드"),
     (
         "Fonts come with licence terms. Read the publisher's terms on the download page: following them is up to you.",
-        "글꼴에는 라이선스 약관이 있습니다. 다운로드 페이지에서 발행처의 약관을 읽어 보세요. 약관 준수는 사용자의 몫입니다.",
+        "글꼴에는 라이선스 약관이 있습니다. 다운로드 페이지에서 배포처의 약관을 읽어 보세요. 약관을 지키는 것은 사용자 책임입니다.",
     ),
     ("Download the font. If it comes as a .zip file, unpack it.", "글꼴을 다운로드하세요. .zip 파일이면 압축을 풀어 주세요."),
     ("Then add it to WordCraft", "그런 다음 WordCraft에 추가하세요"),
@@ -361,7 +360,7 @@ const GAP: Table = &[
         "소책자: 짧은 가장자리 기준 양면 인쇄입니다. 빈 페이지는 끝에 추가됩니다.",
     ),
     ("Scale to paper size", "용지 크기에 맞춤"),
-    ("Sheet {page} of {pages}", "{page}/{pages}번째 용지"),
+    ("Sheet {page} of {pages}", "용지 {page}/{pages}"),
     ("Previous sheet", "이전 용지"),
     ("Next sheet", "다음 용지"),
     (
