@@ -1,7 +1,7 @@
 # macOS DMG window
 
 What Finder shows when the DMG opens: a 660 × 400 pt background with the app icon and the
-`Applications` link side by side. `package.sh` copies these files into the image; nothing here is
+`Applications` link side by side, and the Korean hint "Applications 폴더로 끌어 놓아 설치하세요" under the title. `package.sh` copies these files into the image; nothing here is
 generated at build time, so the DMG builds with a plain `hdiutil create -srcfolder` (no Finder
 scripting on CI, nothing extra installed in the signing job).
 
@@ -13,7 +13,7 @@ read-only and checks the app inside it, and a `ditto` copy of it, with `--strict
 
 | File | What |
 |---|---|
-| `background.svg` | Source of the background: the app icon (`assets/app-icon/wordcraft.svg`, linked, not copied) cropped as a cover on the WordCraft colour field (`#3b5bdb`), Ink and Paper. Its text (Inter, JetBrains Mono) is outlined, so rendering it needs no fonts. No paper grain: noise doesn't compress, and this keeps `background.tiff` small. |
+| `background.svg` | Source of the background: the app icon (`assets/app-icon/wordcraft.svg`, linked, not copied) cropped as a cover on the WordCraft colour field (`#3b5bdb`), Ink and Paper. Its text is outlined, so rendering it needs no fonts: the title is Inter, the hint is Noto Sans CJK (12 pt, tracking 0.6) drawn with fontTools (the same paths as Grid's DMG). Nothing sits below the icons: with Finder's path bar and status bar on, about 56 pt at the bottom of the window is covered and a scroll bar runs across it. No paper grain: noise doesn't compress, and this keeps `background.tiff` small. |
 | `background.tiff` | The background at 1x (660 × 400 px, 72 dpi) and 2x (1320 × 800 px, 144 dpi) in one HiDPI TIFF (16-colour palette, Deflate, sRGB). Goes to `.background/background.tiff`. |
 | `dmg-layout.DS_Store` | Finder's view settings for the volume: window size, icon size 128, Word.app at (326, 205), `Applications` at (574, 205), and the background. Goes to `.DS_Store` in the image; named so it isn't mistaken for (or ignored like) a Finder-generated `.DS_Store`. |
 | `generate.py` | Writes `background.tiff` and `dmg-layout.DS_Store` from the SVG and the layout above. |
