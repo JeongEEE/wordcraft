@@ -9,6 +9,9 @@ use crate::theme::{Tokens, medium, regular, semibold};
 use crate::widgets::{CONTENT_H, LABEL_H, big, big_toggle, group, menu_button, small, split};
 use crate::{WordApp, icons};
 
+/// Width of the button at the far end of the tabs row that collapses or shows the ribbon.
+const COLLAPSE_W: f32 = 28.0;
+
 mod arrange;
 mod charts;
 mod common;
@@ -189,12 +192,26 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
                             contextual: !custom && wordcraft_engine::ribbon::CONTEXTUAL_TABS.contains(&tab.as_str()),
                         })
                         .collect();
-                    let plan = plan_strip(&specs, button_levels, ui.available_width(), MORE_TABS_W + 2.0);
+                    let plan = plan_strip(&specs, button_levels, ui.available_width() - (COLLAPSE_W + 2.0), MORE_TABS_W + 2.0);
                     ui.with_layout(crate::rtl::far_side(ui, egui::Align::Center), |ui| {
                         // No document open (#1129): nothing to share, edit or comment on — but only
                         // these buttons. Disabling the whole line took the tab strip with it: the
                         // tabs took clicks that did nothing, so the empty window had no way back to
                         // the Start screen (#3045).
+                        // The far end of the row: hides the card or shows it again, as the tab's double-click does.
+                        let collapsed = app.ui.ribbon_collapsed;
+                        let (icon, name) =
+                            if collapsed { ("chevronDown", tl!("Show the ribbon")) } else { ("chevronUp", tl!("Collapse the ribbon")) };
+                        let (r, resp) = ui.allocate_exact_size(vec2(COLLAPSE_W, 26.0), Sense::click());
+                        if resp.hovered() {
+                            ui.painter().rect_filled(r, 5.0, t.hover);
+                        }
+                        icons::paint(ui.painter(), Rect::from_center_size(r.center(), vec2(16.0, 16.0)), icon, t.text_dim, t.accent);
+                        resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, name));
+                        if resp.on_hover_text(name).clicked() {
+                            let _ = app.run("ui.collapseRibbon", json!({}));
+                        }
+                        ui.add_space(2.0);
                         ui.add_enabled_ui(app.has_document(), |ui| {
                             let (share_size, share_text) =
                                 if plan.buttons < 2 { (((share_w + 36.0).max(74.0), 24.0), true) } else { ((30.0, 24.0), false) };

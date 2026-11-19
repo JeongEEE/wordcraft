@@ -10,6 +10,8 @@ pub(super) fn get(s: &str) -> Option<&'static str> {
         "About Word" => "Word 정보",
         "A personal word processor based on WordCraft by the ArtCraft team." => "ArtCraft 팀의 WordCraft를 바탕으로 만든 개인용 워드 프로세서입니다.",
         "Word releases and source: github.com/JeongEEE/wordcraft" => "Word 릴리스와 소스: github.com/JeongEEE/wordcraft",
+        // Ribbon
+        "Collapse the ribbon" => "리본 접기",
         // Updates: the corner card
         "Checking for updates" => "업데이트 확인 중",
         "Looking for a new version" => "새 버전을 확인하고 있습니다",

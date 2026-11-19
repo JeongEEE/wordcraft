@@ -312,6 +312,25 @@ fn ctrl_f1_through_the_app_collapses_the_ribbon() {
     assert!(!h.state().ui.ribbon_collapsed, "and brings it back");
 }
 
+/// The button at the far end of the tabs row collapses the ribbon and shows it again, and no
+/// tab is drawn under it.
+#[test]
+fn the_corner_button_collapses_and_expands_the_ribbon() {
+    let mut h = canvas_harness();
+    let button = h.get_by_label("Collapse the ribbon").rect();
+    for tab in ["Home", "Insert", "View", "Help"] {
+        if let Some(node) = h.query_by_label(tab) {
+            assert!(!node.rect().intersects(button), "{tab} is not under the button");
+        }
+    }
+    h.get_by_label("Collapse the ribbon").click();
+    h.run_steps(3);
+    assert!(h.state().ui.ribbon_collapsed, "the button hides the card");
+    h.get_by_label("Show the ribbon").click();
+    h.run_steps(3);
+    assert!(!h.state().ui.ribbon_collapsed, "and shows it again");
+}
+
 /// #1678: a Ctrl+F1 the user binds in Customize Keyboard runs their command through the app,
 /// and the ribbon stays as it was.
 #[cfg(not(target_os = "macos"))]
