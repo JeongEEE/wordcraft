@@ -50,6 +50,23 @@ impl RawWindowState {
         }
     }
 
+    /// The same state in points at zoom 1, from points at `zoom`: the host divides what it reports
+    /// by the zoom factor, but the next start creates the window with the zoom still at 1, so a
+    /// size saved as reported would open `zoom` times too small.
+    pub fn at_zoom_one(self, zoom: f32) -> Self {
+        if !zoom.is_finite() || zoom <= 0.0 {
+            return self;
+        }
+        let rect = |r: egui::Rect| egui::Rect::from_min_max(r.min * zoom, r.max * zoom);
+        Self {
+            inner_rect: self.inner_rect.map(rect),
+            outer_rect: self.outer_rect.map(rect),
+            screen_rect: self.screen_rect.map(rect),
+            monitor_size: self.monitor_size.map(|s| s * zoom),
+            ..self
+        }
+    }
+
     /// The content size reported by this frame, if any. Never the last painted size: a hidden
     /// Wayland tick with neither an `inner_rect` nor a screen rect has no usable geometry.
     pub fn content_size(self) -> Option<egui::Vec2> {
@@ -283,6 +300,18 @@ mod tests {
         assert_eq!(b.inner_size, Some(egui::vec2(1200.0, 800.0)));
         assert_eq!(b.position, Some(egui::pos2(100.0, 50.0)));
         assert_eq!(b.maximized, Some(false));
+    }
+
+    /// At an interface size of 125% the host reports points divided by 1.25, but the next start
+    /// makes the window at zoom 1: the saved geometry must be in zoom-1 points, or each start
+    /// opens the window 1.25 times smaller.
+    #[test]
+    fn a_zoomed_interface_saves_zoom_one_points() {
+        let rect = egui::Rect::from_min_size(egui::pos2(80.0, 40.0), egui::vec2(960.0, 640.0));
+        let reported = raw(rect, egui::vec2(1536.0, 864.0));
+        assert_eq!(WindowGeometry::track(None, &reported).map(|g| g.width), Some(960.0), "as reported it would shrink");
+        assert_eq!(WindowGeometry::track(None, &reported.at_zoom_one(1.25)), Some(saved()));
+        assert_eq!(reported.at_zoom_one(f32::NAN), reported, "a zoom that can't be real changes nothing");
     }
 
     #[test]

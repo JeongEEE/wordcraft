@@ -87,7 +87,10 @@ impl eframe::App for App {
         } else {
             ctx.input_for(active, |i| RawWindowState::from_viewport(Some(i.viewport()), Some(i.viewport_rect())))
         };
-        self.0.ui.window = WindowGeometry::track(prev, &tracked);
+        // In points at zoom 1, which is what the next start's window is made in. (ponytail: the zoom
+        // read here is the one after this frame's change, so the frame a change lands on saves a
+        // wrong size; the next frame saves the right one.)
+        self.0.ui.window = WindowGeometry::track(prev, &tracked.at_zoom_one(ctx.zoom_factor()));
         // The first frame, once the monitor is known (as `take_rescue` waits for): maximize a
         // window that opened at its normal size so it never flashed on screen half-opened.
         let maximize = self.1.and_then(|g| g.maximize_after_open()).filter(|_| window.monitor_size.is_some());
