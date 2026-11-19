@@ -219,7 +219,7 @@ fn flag(app: &mut WordApp, ui: &mut Ui, label: &str, key: &str, value: bool) {
     }
 }
 
-/// Draws General options: interface theme and size, mini toolbar, dark page, community button and
+/// Draws General options: interface theme and size, mini toolbar, dark page and
 /// default apps; the Start screen; and personalization such as user name and initials.
 fn general(app: &mut WordApp, ui: &mut Ui) {
     section(ui, "Interface");
@@ -249,7 +249,6 @@ fn general(app: &mut WordApp, ui: &mut Ui) {
     {
         let _ = app.run("view.darkMode", json!({"value": dark_page}));
     }
-    ui.checkbox(&mut app.ui.show_discord, tl!("Show the community button in the title bar"));
     ui.checkbox(&mut app.ui.font_download_notice, tl!("Tell me when a document's missing fonts can be downloaded"));
     default_app_button(app, ui);
     ui.add_space(8.0);

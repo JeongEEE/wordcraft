@@ -55,15 +55,9 @@ fn back_chevron_c(band_min_x: f32, center_y: f32, fullscreen: bool, content_left
     pos2(band_min_x + x, center_y)
 }
 
-/// The bottom of the backstage menu: About, and the community link unless the user turned the
-/// community button off — the title bar pill honors the same setting, so the menu hides the
-/// link with it.
-fn bottom_links(app: &WordApp) -> Vec<(&'static str, &'static str)> {
-    let mut links = vec![("About", "about")];
-    if app.ui.show_discord {
-        links.push(("Discord community", "discord"));
-    }
-    links
+/// The bottom of the backstage menu: About.
+fn bottom_links(_app: &WordApp) -> Vec<(&'static str, &'static str)> {
+    vec![("About", "about")]
 }
 
 /// Draws the Backstage side menu and the active page. Without a document only the Home, New, Open
@@ -129,7 +123,7 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
             }
             ui.add_space(if mac { 12.0 } else { 6.0 });
             // A window too short for the whole menu scrolls it below the back button (#6639).
-            // When the menu fits, About and the community link stay at the bottom.
+            // When the menu fits, About stays at the bottom.
             let links = bottom_links(app);
             let spacing = ui.spacing().item_spacing.y;
             let links_h = (32.0 + spacing) * links.len() as f32 - spacing;
@@ -181,7 +175,7 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
                     ui.add_space(gap);
                 }
                 ui.allocate_ui_with_layout(vec2(200.0, links_h), egui::Layout::bottom_up(egui::Align::Min), |ui| {
-                    for (label, id) in links {
+                    for (label, _) in links {
                         let (r, resp) = ui.allocate_exact_size(vec2(200.0, 32.0), Sense::click());
                         resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, ui.is_enabled(), tl!(label)));
                         if resp.gained_focus() {
@@ -193,11 +187,7 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
                         let at = pos2(crate::rtl::lead_x(rtl, r, 22.0), r.center().y);
                         ui.painter().text(at, crate::rtl::lead_center(rtl), tl!(label), regular(13.0), egui::Color32::WHITE);
                         if resp.clicked() {
-                            if id == "discord" {
-                                let _ = app.run("ui.discord", json!({}));
-                            } else {
-                                app.dialog = crate::dialogs::Dialog::open("about", app);
-                            }
+                            app.dialog = crate::dialogs::Dialog::open("about", app);
                         }
                     }
                 });

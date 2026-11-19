@@ -616,31 +616,24 @@ fn title_and_account_buttons_work() {
     h.run_steps(2);
     assert!(h.state().dialog.is_none());
     assert_eq!(h.state().title_stem(), long_name.trim());
-    h.get_by_label("Account").click();
-    h.run_steps(2);
-    assert!(h.state().ui.backstage);
-    assert_eq!(h.state().ui.backstage_page, "options");
-    assert_eq!(h.state().ui.options_pane, "general");
-    assert!(h.query_by_label("User name:").is_some());
 }
 
-/// The Options toggle hides the community pill in the title bar; the backstage menu's
-/// Discord link hides with it — one setting, everywhere the link shows.
+/// The title bar has no account circle and no Discord pill, and the backstage menu no Discord
+/// link; a `showDiscord` key left in an old `ui.json` is ignored.
 #[test]
-fn the_community_button_off_hides_the_backstage_discord_link_too() {
+fn the_title_bar_has_no_account_or_discord_button() {
     use egui_kittest::kittest::Queryable;
+    let mut h = harness(app());
+    h.run_steps(2);
+    assert!(h.query_by_label("Account").is_none());
+    assert!(h.query_by_label("Discord").is_none());
     let mut a = app();
     a.run("ui.backstage", json!({"value": true})).unwrap();
     let mut h = harness(a);
     h.run_steps(2);
-    assert!(h.query_by_label("Discord community").is_some(), "the community link shows by default");
-
-    let mut a = app();
-    a.ui.show_discord = false;
-    a.run("ui.backstage", json!({"value": true})).unwrap();
-    let mut h = harness(a);
-    h.run_steps(2);
-    assert!(h.query_by_label("Discord community").is_none(), "the backstage link honors the same setting");
+    assert!(h.query_by_label("Discord community").is_none());
+    let old: UiState = serde_json::from_str(r#"{"tab":"Insert","showDiscord":false}"#).unwrap();
+    assert_eq!(old.tab, "Insert");
 }
 
 /// File › Options › Advanced › Editing: alignment guides are a UI command, on by default and
@@ -794,7 +787,7 @@ fn start_screen_shows_file_home_and_esc_leaves_no_document() {
     for id in ["format.bold", "text.insert", "file.save", "file.saveAs", "file.print", "edit.paste", "insert.table", "ui.print"] {
         assert!(!widgets::enabled(a, id), "{id} is off with no document");
     }
-    for id in ["file.new", "file.open", "ui.backstage", "ui.tab", "ui.discord", "file.options", "ui.theme", "ui.statusCount"] {
+    for id in ["file.new", "file.open", "ui.backstage", "ui.tab", "file.options", "ui.theme", "ui.statusCount"] {
         assert!(widgets::enabled(a, id), "{id} works with no document");
     }
     assert!(!chrome::qat_enabled(a, "file.save"));
@@ -4195,7 +4188,7 @@ fn the_default_app_button_shows_only_with_the_hosts_hook() {
             a,
         );
         h.run_steps(4);
-        assert!(h.query_by_label("Show the community button in the title bar").is_some(), "hook {hook}: the Options page rendered");
+        assert!(h.query_by_label("Tell me when a document's missing fonts can be downloaded").is_some(), "hook {hook}: the Options page rendered");
         assert_eq!(h.query_by_label(LABEL).is_some(), hook, "hook {hook}: the button");
         if hook {
             h.get_by_label(LABEL).click();

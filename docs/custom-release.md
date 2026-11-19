@@ -53,6 +53,8 @@ UpgradeCode와 component GUID는 이후 릴리스에서 바꾸지 않는다. 바
 Windows 기본 앱 설정의 선택지로만 등록하고, 확장자의 기본 앱은 바꾸지 않는다.
 ArtCraft 로고·워드마크는 배포물과 화면에서 뺐고, WordCraft 기반이라는 텍스트 출처와
 원본 저작권·라이선스는 남긴다.
+ArtCraft 커뮤니티 디스코드 버튼·링크·명령(`ui.discord`)과 제목줄 오른쪽 위 계정 원도 화면에서 뺐다
+(이름·머리글자 설정은 File › Options에 남는다).
 
 ## 빌드와 검증
 
