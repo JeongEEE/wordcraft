@@ -280,6 +280,10 @@ const GAP: Table = &[
     ("Get the Missing Fonts…", "없는 글꼴 받기…"),
     ("Shown in substitute fonts. Click for details.", "대체 글꼴로 표시됩니다. 클릭하면 자세히 볼 수 있습니다."),
     ("Not installed — shown as", "설치되지 않음 — 표시 글꼴"),
+    // Counts (`tn`): the `other` form, Korean having one.
+    ("{n} fonts not installed", "설치되지 않은 글꼴 {n}개"),
+    ("…and {n} more", "…외 {n}개"),
+    ("{n} missing fonts can be downloaded", "없는 글꼴 {n}개를 다운로드할 수 있습니다"),
     (
         "{font} isn't installed on this computer, so its text is shown in {shown}. Line breaks and page count can differ from where the document was made. If you have the font file, add it with Add Font… at the end of this list.",
         "{font} 글꼴이 이 컴퓨터에 설치되어 있지 않아 텍스트가 {shown}(으)로 표시됩니다. 줄 바꿈과 페이지 수가 문서를 만든 곳과 다를 수 있습니다. 글꼴 파일이 있으면 이 목록 끝의 글꼴 추가…로 추가하세요.",

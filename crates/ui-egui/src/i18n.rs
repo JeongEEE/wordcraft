@@ -378,6 +378,14 @@ pub fn tn(n: u64, one: &str, other: &str) -> String {
         return I18N.trn(craft_i18n::Lang::PSEUDO, n, one, other);
     }
     let lang = current();
+    // Korean words a count one way: a count with no `@plural` row takes the fork's gap row for
+    // `other` (`fork_ko`), formatted by the catalog like any count.
+    if lang.code() == "ko"
+        && lang.i18n().get(lang.lang, "@plural", &format!("{one}|{other}")).is_none()
+        && let Some(ko) = fork_ko::gap(other)
+    {
+        return lang.i18n().trn(lang.lang, n, ko, ko);
+    }
     lang.i18n().trn(lang.lang, n, one, other)
 }
 

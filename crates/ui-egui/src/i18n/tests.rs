@@ -1402,3 +1402,14 @@ fn the_forks_own_strings_have_their_korean_table() {
     assert_eq!(t("Later"), "나중에", "tl! reads it too");
     set_current(Lang::EN);
 }
+
+/// A count the catalog has no `@plural` row for reads the fork's gap row in Korean, for one too.
+#[test]
+fn korean_counts_without_a_plural_row_use_the_gap_table() {
+    set_current(fixture_lang("ko", "\tHome\t홈\n"));
+    assert_eq!(tn(2, "{n} font not installed", "{n} fonts not installed"), "설치되지 않은 글꼴 2개");
+    assert_eq!(tn(1, "{n} font not installed", "{n} fonts not installed"), "설치되지 않은 글꼴 1개");
+    assert_eq!(tn(3, "{n} cats", "{n} cats"), "3 cats", "without a gap row the English stays");
+    set_current(Lang::EN);
+    assert_eq!(tn(2, "{n} font not installed", "{n} fonts not installed"), "2 fonts not installed");
+}
