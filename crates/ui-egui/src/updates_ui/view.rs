@@ -25,7 +25,15 @@ fn badge(ui: &mut egui::Ui, size: f32) {
     let t = Tokens::get(ui.ctx());
     let (rect, _) = ui.allocate_exact_size(vec2(size, size), Sense::hover());
     ui.painter().rect_filled(rect, 10.0, t.checked);
-    crate::icons::paint(ui.painter(), rect.shrink(size * 0.2), "check", t.accent, t.accent);
+    let r = rect.shrink(size * 0.25);
+    let tick = [egui::pos2(r.left(), r.center().y), egui::pos2(r.left() + r.width() * 0.4, r.bottom()), egui::pos2(r.right(), r.top())];
+    ui.painter().add(egui::Shape::line(tick.to_vec(), Stroke::new(size * 0.09, t.accent)));
+}
+
+/// The cards' contents. The old `rtl::root` mirror went with the framework port; the cards keep the
+/// interface's left-to-right order.
+fn root<R>(ui: &mut egui::Ui, add: impl FnOnce(&mut egui::Ui) -> R) -> R {
+    add(ui)
 }
 
 fn progress(ui: &mut egui::Ui, phase: &Phase) {
@@ -73,7 +81,7 @@ fn corner(rt: &mut Runtime, ctx: &egui::Context) {
         .interactable(ready)
         .show(ctx, |ui| {
             card_frame(ctx).show(ui, |ui| {
-                crate::rtl::root(ui, |ui| {
+                root(ui, |ui| {
                     if ready {
                         let t = Tokens::get(ctx);
                         ui.horizontal(|ui| {
@@ -111,7 +119,7 @@ fn completed(rt: &mut Runtime, ctx: &egui::Context) {
             ui.set_opacity(opacity);
             card_frame(ctx).show(ui, |ui| {
                 ui.set_max_width(320.0);
-                crate::rtl::root(ui, |ui| {
+                root(ui, |ui| {
                     ui.horizontal(|ui| {
                         badge(ui, 28.0);
                         ui.label(RichText::new(text).color(Tokens::get(ctx).text));
@@ -128,7 +136,7 @@ fn restart_prompt(rt: &mut Runtime, ctx: &egui::Context, version: &str, response
     let mut later = false;
     let modal = egui::Modal::new(egui::Id::unique("word.update.ready")).frame(card_frame(ctx).inner_margin(24)).show(ctx, |ui| {
         ui.set_width(376.0);
-        crate::rtl::root(ui, |ui| {
+        root(ui, |ui| {
             ui.horizontal(|ui| {
                 badge(ui, 48.0);
                 ui.add_space(6.0);
@@ -157,7 +165,9 @@ fn restart_prompt(rt: &mut Runtime, ctx: &egui::Context, version: &str, response
         })
     });
     response.modal = true;
-    if later || modal.should_close() {
+    // Escape reaches the window as the framework's Cancel intent, not as a key event the modal would see.
+    let cancel = craft::ui::runtime::keys::with_window_intents(ctx, false, |window| window.take(craft::ui::runtime::keys::Intent::Cancel));
+    if later || cancel || modal.should_close() {
         rt.visible = false;
     }
 }
@@ -169,7 +179,7 @@ fn update_window(rt: &mut Runtime, ctx: &egui::Context, response: &mut Response)
         ctx,
         |ui| {
             ui.set_max_width(440.0);
-            crate::rtl::root(ui, |ui| {
+            root(ui, |ui| {
                 match &rt.phase {
                     Phase::Idle => {
                         ui.label(tl!("You can check for updates."));
@@ -209,7 +219,7 @@ fn install_failed(rt: &mut Runtime, ctx: &egui::Context) {
         ctx,
         |ui| {
             ui.set_max_width(440.0);
-            crate::rtl::root(ui, |ui| {
+            root(ui, |ui| {
                 ui.label(fmt(tl!("Couldn't install the update. {reason}"), &[("reason", reason)]));
                 close = ui.button(tl!("Close")).clicked();
             })

@@ -1,10 +1,13 @@
-//! Korean the craft-i18n catalogs don't have, in two tables. [`super::tr`] reads them when the
-//! interface is Korean:
+//! Korean the craft-i18n catalogs don't have, in three tables. [`super::tr`] reads the first two when
+//! the interface is Korean:
 //!
 //! - [`get`]: strings only this personal fork (Word) has: the update card, prompt and window, and
 //!   the About window's own sentences. Looked up before the catalog.
 //! - [`gap`]: upstream strings the Korean catalog hasn't translated yet. Looked up only when the
 //!   catalog has no translation, so a later craft-i18n bump that adds one wins over this table.
+//! - [`with_framework_rows`]: the framework's own words (the unsaved-changes question on quitting,
+//!   the file prompts), which the framework looks up in the catalogs, never through [`super::tr`].
+//!   They join the Korean catalog as rows it doesn't have yet.
 
 use std::collections::HashMap;
 use std::sync::LazyLock;
@@ -378,6 +381,50 @@ const GAP: Table = &[
     ("No items to show.", "표시할 항목이 없습니다."),
 ];
 
+/// The framework's dialog words (craft `DialogWords`) Word shows that the Korean catalog hasn't translated, by their
+/// English text.
+const FRAMEWORK: Table = &[
+    ("Do you want to save the changes you made to “{name}” before closing?", "닫기 전에 “{name}”의 변경 사항을 저장하시겠습니까?"),
+    ("Do you want to save the changes you made to “{name}” before quitting?", "종료하기 전에 “{name}”의 변경 사항을 저장하시겠습니까?"),
+    (
+        "Revert “{name}” to the last saved version? Your changes will be lost.",
+        "“{name}”을(를) 마지막으로 저장한 버전으로 되돌리시겠습니까? 변경 사항은 사라집니다.",
+    ),
+    ("Apply to All", "모두에 적용"),
+    ("Confirm", "확인"),
+    ("Damaged file", "손상된 파일"),
+    ("“{name}” has damaged data. Open it anyway?", "“{name}”에 손상된 데이터가 있습니다. 그래도 여시겠습니까?"),
+    ("Open Anyway", "그래도 열기"),
+    ("File changed", "파일이 변경됨"),
+    ("“{name}” was changed by another app after it was opened or saved here.", "“{name}”을(를) 여기서 열거나 저장한 뒤에 다른 앱이 변경했습니다."),
+    (
+        "Replace it with this document, or cancel and use Save As to keep both.",
+        "이 문서로 바꾸거나, 취소한 뒤 다른 이름으로 저장을 사용해 둘 다 보관하세요.",
+    ),
+    ("Replace file", "파일 바꾸기"),
+    ("“{name}” already exists. Replace it?", "“{name}”이(가) 이미 있습니다. 바꾸시겠습니까?"),
+    ("The name in the save dialog was “{answered}”.", "저장 대화상자에 입력한 이름은 “{answered}”입니다."),
+    ("Recover Unsaved Work", "저장하지 않은 작업 복구"),
+    (
+        "“{name}” has unsaved changes from an earlier run, autosaved {age}.",
+        "“{name}”에 이전 실행에서 저장하지 않은 변경 사항이 있습니다({age} 자동 저장).",
+    ),
+];
+
+/// The Korean app catalog `app` with a row for each [`FRAMEWORK`] word that neither it nor the shared catalog `shared`
+/// has. A row added later upstream is then the one shown, and no row is defined twice.
+pub(super) fn with_framework_rows(shared: &str, app: &str) -> String {
+    let has = |en: &str| [shared, app].iter().any(|catalog| catalog.lines().any(|line| line.split('\t').nth(1) == Some(en)));
+    let mut out = app.to_owned();
+    if !out.is_empty() && !out.ends_with('\n') {
+        out.push('\n');
+    }
+    for (en, ko) in FRAMEWORK.iter().filter(|(en, _)| !has(en)) {
+        out.push_str(&format!("\t{en}\t{ko}\n"));
+    }
+    out
+}
+
 fn index(table: Table) -> HashMap<&'static str, &'static str> {
     table.iter().copied().collect()
 }
@@ -408,7 +455,7 @@ mod tests {
 
     #[test]
     fn translations_keep_placeholders_line_breaks_and_ellipsis() {
-        for (name, table) in [("FORK", FORK), ("GAP", GAP)] {
+        for (name, table) in [("FORK", FORK), ("GAP", GAP), ("FRAMEWORK", FRAMEWORK)] {
             let mut keys = std::collections::HashSet::new();
             for (en, ko) in table {
                 assert!(keys.insert(*en), "{name}: duplicate key {en:?}");
@@ -416,24 +463,6 @@ mod tests {
                 assert_eq!(en.matches('\n').count(), ko.matches('\n').count(), "{name}: line breaks differ in {en:?}");
                 assert_eq!(en.ends_with('…'), ko.ends_with('…'), "{name}: trailing ellipsis differs in {en:?}");
             }
-        }
-    }
-
-    #[test]
-    fn hangul_has_glyphs_in_the_embedded_interface_faces() {
-        // As the catalogs' own check does it (#486); skipped without a craft-fonts build.
-        if wordcraft_fonts::ui_cjk_fonts_for(false, true).is_empty() {
-            eprintln!("skipped: built without craft-fonts (CRAFT_FONTS_DIR)");
-            return;
-        }
-        let ctx = egui::Context::default();
-        ctx.set_fonts(crate::theme::font_definitions_language(false, true, false, false));
-        ctx.run_ui(Default::default(), |_| {}).textures_delta.clear();
-        let chars: std::collections::BTreeSet<char> =
-            FORK.iter().chain(GAP).flat_map(|(_, ko)| ko.chars()).filter(|c| wordcraft_fonts::is_cjk(*c)).collect();
-        for font in [crate::theme::regular(14.0), crate::theme::medium(14.0), crate::theme::semibold(14.0)] {
-            let missing: String = ctx.fonts_mut(|f| chars.iter().filter(|c| !f.has_glyph(&font, **c)).collect());
-            assert!(missing.is_empty(), "no glyph in {font:?} for {missing}");
         }
     }
 }

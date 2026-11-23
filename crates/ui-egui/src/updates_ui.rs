@@ -124,7 +124,8 @@ impl WordApp {
     /// once the exit is certain, before a path that ends the process without dropping the app. A
     /// normal quit installs nothing, and later calls do nothing.
     pub fn start_pending_update(&mut self) {
-        let asking = matches!(self.dialog, Some(crate::dialogs::Dialog::SaveChanges { .. })) || self.file_dialog_open();
+        // A close operation still running: its Save Changes prompt, or the Save As it led to.
+        let asking = self.closing.is_some() || self.file_dialog_open();
         if !std::mem::take(&mut self.updates_rt.restart_requested) || asking {
             self.updates_rt.reopen.clear();
             return;
@@ -252,8 +253,7 @@ fn receive(rt: &mut Runtime, message: Message) {
 /// to) still waiting for an answer.
 #[cfg(not(target_arch = "wasm32"))]
 fn quit_is_pending(app: &WordApp) -> bool {
-    let quit_prompt = matches!(&app.dialog, Some(crate::dialogs::Dialog::SaveChanges { then, params, .. })
-        if then == "file.close" && params.get("quit").and_then(serde_json::Value::as_bool) == Some(true));
+    let quit_prompt = app.closing.as_ref().is_some_and(|c| c.guard.scope() == craft::quit::CloseScope::Quit);
     app.quit_requested || quit_prompt || app.file_dialog_open()
 }
 
@@ -339,17 +339,19 @@ fn reopen_path(path: Option<&std::path::Path>) -> Option<String> {
     path.to_str().map(str::to_string)
 }
 
-/// A Save Changes answer of the restart's quit is closing the shown document: remember the file
-/// it was saved to (Save As gives a new document one) before it goes.
+/// The restart's quit has its Save Changes answers: remember the file each document was saved to
+/// (Save As gives a new document one) before they go.
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn remember_restart_document(app: &mut WordApp) {
     if !app.updates_rt.restart_requested {
         return;
     }
-    let id = app.session.document_id();
-    let path = reopen_path(app.session.path.as_deref());
-    if let Some((_, remembered)) = app.updates_rt.reopen.iter_mut().find(|(doc, _)| *doc == id) {
-        *remembered = path;
+    let paths: std::collections::HashMap<u64, Option<String>> =
+        app.session.documents().into_iter().map(|d| (d.id, reopen_path(d.path.as_deref()))).collect();
+    for (doc, remembered) in &mut app.updates_rt.reopen {
+        if let Some(path) = paths.get(doc) {
+            *remembered = path.clone();
+        }
     }
 }
 
@@ -382,8 +384,7 @@ fn begin_restart(app: &mut WordApp) {
 /// property, or a quit.
 #[cfg(not(target_arch = "wasm32"))]
 fn prompt_allowed(app: &WordApp) -> bool {
-    app.dialog.is_none()
-        && app.colors.is_none()
+    app.dialog_host.is_empty()
         && !app.file_dialog_open()
         && app.canvas.ime_preedit.is_empty()
         && !crate::panes::has_comment_drafts(app)
@@ -433,11 +434,9 @@ pub(crate) fn show(app: &mut WordApp, ctx: &egui::Context) {
             .collapsible(false)
             .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
             .show(ctx, |ui| {
-                crate::rtl::root(ui, |ui| {
-                    if let Some(msg) = &app.updates_rt.status_message {
-                        ui.label(msg);
-                    }
-                })
+                if let Some(msg) = &app.updates_rt.status_message {
+                    ui.label(msg);
+                }
             });
         if !open {
             app.updates_rt.manual_window_open = false;

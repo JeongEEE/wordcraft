@@ -1,0 +1,9 @@
+[package]
+name = "xcap"
+version = "0.9.8"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "Word fork stand-in for xcap: no screen capture (see fork-stubs/README.md)"
+publish = false
+
+[dependencies]

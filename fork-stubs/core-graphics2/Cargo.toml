@@ -1,0 +1,15 @@
+[package]
+name = "core-graphics2"
+version = "0.6.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "Word fork stand-in for core-graphics2: no screen capture (see fork-stubs/README.md)"
+publish = false
+
+[features]
+default = []
+display = []
+window = []
+link = []
+
+[dependencies]

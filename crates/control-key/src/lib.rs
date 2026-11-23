@@ -1,5 +1,5 @@
-//! The control channel's key file, one rule for the app (which writes it) and the MCP bridge
-//! (which reads it): `<settings>/control-key.<instance>`. See `docs/control-protocol.md`, Keys.
+//! The control channel's token file, one rule for the app (which writes it) and the MCP bridge
+//! (which reads it): `<settings>/control-key.<instance>`. See `docs/control-protocol.md`, Token.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 use std::path::{Path, PathBuf};
@@ -37,8 +37,8 @@ pub fn instance_id() -> Option<String> {
     parse_instance_id(&std::fs::read_to_string("/.flatpak-info").ok()?)
 }
 
-/// `<settings>/control-key.<instance>`, with `<instance>` the Flatpak instance id or
-/// `local-<port>`.
+/// The token file `<settings>/control-key.<instance>`, with `<instance>` the Flatpak instance id
+/// or `local-<port>`.
 pub fn key_path(settings: &Path, port: u16) -> PathBuf {
     key_path_for(settings, instance_id().as_deref(), port)
 }

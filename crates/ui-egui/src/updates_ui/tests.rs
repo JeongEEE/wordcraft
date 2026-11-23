@@ -70,7 +70,7 @@ fn update_harness(a: WordApp) -> egui_kittest::Harness<'static, WordApp> {
         .with_size(egui::vec2(800.0, 480.0))
         .with_step_dt(1.0 / 60.0)
         .with_context_setup(|ctx| {
-            ctx.set_fonts(crate::theme::font_definitions(false, false));
+            ctx.set_fonts(crate::theme::font_definitions());
         })
         .build_ui_state(|ui, a| super::show(a, ui.ctx()), a);
     h.ctx.set_missing_glyph_policy(egui::MissingGlyphPolicy::Tofu);
@@ -79,14 +79,8 @@ fn update_harness(a: WordApp) -> egui_kittest::Harness<'static, WordApp> {
 
 /// The whole window, as the app draws it.
 fn app_harness(a: WordApp) -> egui_kittest::Harness<'static, WordApp> {
-    egui_kittest::Harness::builder().with_size(egui::vec2(1440.0, 900.0)).with_step_dt(1.0 / 60.0).build_ui_state(
-        |ui, a: &mut WordApp| {
-            let ctx = ui.ctx().clone();
-            a.logic(&ctx);
-            a.ui(ui);
-        },
-        a,
-    )
+    // As the desktop driver runs it, with the craft runtime installed (the app's commands need it).
+    crate::test_harness::builder().with_size(egui::vec2(1440.0, 900.0)).with_step_dt(1.0 / 60.0).build_eframe(|_| a)
 }
 
 #[test]
@@ -113,7 +107,7 @@ fn saving_during_the_restart_keeps_the_file_to_open_again() {
     a.run("text.insert", json!({"text": "수정한 내용 "})).unwrap();
     begin_restart(&mut a);
     assert!(!a.quit_requested, "the unsaved change is asked about first");
-    assert!(matches!(a.dialog, Some(crate::dialogs::Dialog::SaveChanges { .. })));
+    assert!(a.closing.as_ref().is_some_and(|c| c.prompt.is_some()), "the Save Changes prompt is open");
     answer(&mut a, "save");
     assert!(a.quit_requested);
     assert!(a.updates_rt.restart_requested, "the restart goes on");
@@ -126,11 +120,11 @@ fn saving_during_the_restart_keeps_the_file_to_open_again() {
 fn saving_a_new_document_reopens_it_from_where_save_as_put_it() {
     let folder = Folder::new();
     let path = folder.path("새 보고서.docx");
-    let picked = path.clone();
-    let mut a = WordApp::new(
-        Session::new(wordcraft_doc::Document::new()),
-        Services { pick_save: Some(Box::new(move |_| Some(picked.clone()))), ..Default::default() },
-    );
+    // Save As answers with `path`, through the host's scripted file picker.
+    let files = std::sync::Arc::new(craft::host::ScriptedFiles::new());
+    files.queue(craft::host::Picked::Paths(vec![std::path::PathBuf::from(&path)]));
+    let host = craft::host::Host::builder(crate::APP).files(files).build();
+    let mut a = WordApp::new(Session::new(wordcraft_doc::Document::new()), Services::default()).with_host(std::sync::Arc::new(host));
     a.run("text.insert", json!({"text": "42"})).unwrap();
     begin_restart(&mut a);
     assert_eq!(remembered(&a), Vec::<&str>::new(), "a new document has no file yet");
@@ -205,10 +199,10 @@ fn the_ready_prompt_is_korean_in_a_korean_interface() {
     let mut a = app();
     ready(&mut a);
     let mut h = update_harness(a);
-    crate::i18n::set_current(crate::i18n::fixture_lang("ko", "\tHome\t홈\n"));
+    crate::i18n::apply_language(crate::i18n::fixture_lang("ko", "\tHome\t홈\n"));
     h.run_steps(3);
     let korean = h.query_by_label("재시작하여 업데이트").is_some() && h.query_by_label("나중에").is_some();
-    crate::i18n::set_current(crate::i18n::Lang::EN);
+    crate::i18n::apply_language(crate::i18n::Lang::EN);
     assert!(korean);
 }
 
@@ -324,7 +318,7 @@ fn the_restart_prompt_waits_for_a_dialog_or_a_composition() {
         ready(&mut a);
         if kind == "dialog" {
             a.run("ui.dialog", json!({"name": "about"})).unwrap();
-            assert!(a.dialog.is_some());
+            assert!(!a.dialog_host.is_empty());
         } else {
             a.canvas.ime_preedit = "ㅎ".into();
         }
@@ -332,7 +326,8 @@ fn the_restart_prompt_waits_for_a_dialog_or_a_composition() {
         h.run_steps(3);
         assert!(h.query_by_label("Restart to Update").is_none(), "{kind}: waits");
         assert!(h.query_by_label("Update ready").is_some(), "{kind}");
-        h.state_mut().dialog = None;
+        let ctx = h.ctx.clone();
+        crate::dialogs::host::close_all(h.state_mut(), &ctx);
         h.state_mut().canvas.ime_preedit.clear();
         h.run_steps(3);
         assert!(h.query_by_label("Restart to Update").is_some(), "{kind}: shown once it ends");
